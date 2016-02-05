@@ -88,8 +88,12 @@ assert 0 < clargs.FDR_cutoff < 1, "FDR must be between 0 and 1"
 assert clargs.FDR_limit < 0, "FDR limit must be less than 0"
 assert len([f for f in os.listdir(clargs.outputdir) if f[0] != "."]) == 0, "output directory {0} is not empty!".format(clargs.outputdir)
 
+if ',' in clargs.reads:
+    clargs.reads = clargs.reads.split(',').replace(' ','')
+else:
+    clargs.reads = [clargs.reads]
 if not clargs.output_prefix:
-    clargs.output_prefix = str(os.path.basename(clargs.reads)) + "." + str(os.path.basename(clargs.regions))
+    clargs.output_prefix = str(os.path.basename(clargs.reads[0])) + "." + str(os.path.basename(clargs.regions))
 
 #Load reads and regions
 regions = pyDNase.GenomicIntervalSet(clargs.regions)

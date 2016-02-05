@@ -38,7 +38,7 @@ class BAMHandler(object):
     """
     The object that provides the interface to DNase-seq data help in a BAM file
     """
-    def __init__(self, filePath, caching=True, chunkSize=1000, ATAC=False):
+    def __init__(self, filePaths, caching=True, chunkSize=1000, ATAC=False):
         """Initializes the BAMHandler with a BAM file
 
         Args:
@@ -50,7 +50,7 @@ class BAMHandler(object):
             IOError
         """
         try:
-            self.samfile = pysam.Samfile(filePath)
+            self.samfiles = [pysam.Samfile(filePath) in filePaths]
         except IOError:
             errorString = "Unable to load BAM file:{0}".format(filePath)
             raise IOError(errorString)
@@ -76,15 +76,16 @@ class BAMHandler(object):
             start (int): The start of the interval
             end (int): The end of the interval
         """
-        for alignedread in self.samfile.fetch(chrom, max(start, 0), end):
-            if alignedread.is_reverse:
-                a = int(alignedread.aend)
-                if a <= end +1:
-                    self.cutCache[chrom]["-"][a] = self.cutCache[chrom]["-"].get(a, 0) + 1
-            else:
-                a = int(alignedread.pos) -1
-                if a >= start:
-                    self.cutCache[chrom]["+"][a] = self.cutCache[chrom]["+"].get(a, 0) + 1
+        for samfile in self.samfiles:
+            for alignedread in samfile.fetch(chrom, max(start, 0), end):
+                if alignedread.is_reverse:
+                    a = int(alignedread.aend)
+                    if a <= end +1:
+                        self.cutCache[chrom]["-"][a] = self.cutCache[chrom]["-"].get(a, 0) + 1
+                else:
+                    a = int(alignedread.pos) -1
+                    if a >= start:
+                        self.cutCache[chrom]["+"][a] = self.cutCache[chrom]["+"].get(a, 0) + 1
         self.lookupCache[chrom].append(start)
 
     def __lookupReadsUsingCache(self,startbp,endbp,chrom):
@@ -117,15 +118,16 @@ class BAMHandler(object):
         """
         tempcutf = {}
         tempcutr = {}
-        for alignedread in self.samfile.fetch(chrom, max(startbp, 0), endbp):
-            if alignedread.is_reverse:
-                a = int(alignedread.aend)
-                if a <= endbp +1:
-                    tempcutr[a] = tempcutr.get(a, 0) + 1
-            else:
-                a = int(alignedread.pos) - 1
-                if a >= startbp:
-                    tempcutf[a] =tempcutf.get(a, 0) + 1
+        for samfile in self.samfiles:
+            for alignedread in self.samfile.fetch(chrom, max(startbp, 0), endbp):
+                if alignedread.is_reverse:
+                    a = int(alignedread.aend)
+                    if a <= endbp +1:
+                        tempcutr[a] = tempcutr.get(a, 0) + 1
+                else:
+                    a = int(alignedread.pos) - 1
+                    if a >= startbp:
+                        tempcutf[a] =tempcutf.get(a, 0) + 1
         fwCutArray  = [tempcutf.get(i, 0) for i in range(startbp + self.loffset ,endbp + self.loffset)]
         revCutArray = [tempcutr.get(i, 0) for i in range(startbp + self.roffset, endbp + self.roffset)]
         return {"+":fwCutArray,"-":revCutArray}
