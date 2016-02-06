@@ -50,7 +50,7 @@ class BAMHandler(object):
             IOError
         """
         try:
-            self.samfiles = [pysam.Samfile(filePath) in filePaths]
+            self.samfiles = [pysam.Samfile(filePath) for filePath in filePaths]
         except IOError:
             errorString = "Unable to load BAM file:{0}".format(filePath)
             raise IOError(errorString)
