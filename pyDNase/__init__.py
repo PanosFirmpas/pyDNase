@@ -119,7 +119,7 @@ class BAMHandler(object):
         tempcutf = {}
         tempcutr = {}
         for samfile in self.samfiles:
-            for alignedread in self.samfile.fetch(chrom, max(startbp, 0), endbp):
+            for alignedread in samfile.fetch(chrom, max(startbp, 0), endbp):
                 if alignedread.is_reverse:
                     a = int(alignedread.aend)
                     if a <= endbp +1:
@@ -141,9 +141,10 @@ class BAMHandler(object):
         self.cutCache = {}
         #This helps us differentiate between what's been looked up and when there's just no reads
         self.lookupCache = {}
-        for i in self.samfile.references:
-            self.cutCache[i]    = {"+":{},"-":{}}
-            self.lookupCache[i] = []
+        for samfile in self.samfiles:
+            for i in samfile.references:
+                self.cutCache[i]    = {"+":{},"-":{}}
+                self.lookupCache[i] = []
 
     def get_cut_values(self,vals):
         """Return a dictionary with the cut counts. Can be used in two different ways:
