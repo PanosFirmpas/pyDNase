@@ -89,7 +89,7 @@ assert clargs.FDR_limit < 0, "FDR limit must be less than 0"
 assert len([f for f in os.listdir(clargs.outputdir) if f[0] != "."]) == 0, "output directory {0} is not empty!".format(clargs.outputdir)
 
 if ',' in clargs.reads:
-    clargs.reads = clargs.reads.split(',').replace(' ','')
+    clargs.reads = [thing.replace(' ','') for thing in clargs.reads.split(',')]
 else:
     clargs.reads = [clargs.reads]
 if not clargs.output_prefix:
